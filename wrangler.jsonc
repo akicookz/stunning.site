@@ -169,7 +169,7 @@
         "ALLOWED_EMAIL": "",
         "DISPATCH_NAMESPACE": "vibesdk-default-namespace",
         "ENABLE_READ_REPLICAS": "true",
-        "CLOUDFLARE_AI_GATEWAY": "vibesdk-gateway",
+        "CLOUDFLARE_AI_GATEWAY": "stunning-site",
         "PLATFORM_CAPABILITIES": {
             "features": {
                 "app": {
