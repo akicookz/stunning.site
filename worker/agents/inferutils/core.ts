@@ -748,7 +748,10 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
             }
         }
 
-        console.log(`Running inference with ${modelName} using structured output with ${format} format, reasoning effort: ${reasoning_effort}, max tokens: ${maxTokens}, temperature: ${temperature}, frequency_penalty: ${frequency_penalty}, baseURL: ${baseURL}`);
+        // GPT-5 family models reject any temperature except the default (1)
+        const effectiveTemperature = modelName.includes('gpt-5') ? undefined : temperature;
+
+        console.log(`Running inference with ${modelName} using structured output with ${format} format, reasoning effort: ${reasoning_effort}, max tokens: ${maxTokens}, temperature: ${effectiveTemperature}, frequency_penalty: ${frequency_penalty}, baseURL: ${baseURL}`);
 
         const toolsOpts = tools ? {
             tools: tools.map(t => {
@@ -768,7 +771,7 @@ export async function infer<OutputSchema extends z.AnyZodObject>({
                 max_completion_tokens: maxTokens || 150000,
                 stream: stream ? true : false,
                 reasoning_effort: modelConfig.nonReasoning ? undefined : reasoning_effort,
-                temperature,
+                temperature: effectiveTemperature,
                 frequency_penalty,
             }, {
                 signal: abortSignal,
