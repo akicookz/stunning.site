@@ -176,6 +176,7 @@ const MODELS_MASTER = {
             provider: 'openai',
             creditCost: 5, // $1.25
             contextSize: 400000, // 400K Context
+            directOverride: true,
         }
     },
     OPENAI_5_1: {
@@ -186,6 +187,7 @@ const MODELS_MASTER = {
             provider: 'openai',
             creditCost: 5, // $1.25
             contextSize: 400000, // 400K Context
+            directOverride: true,
         }
     },
     OPENAI_5_2: {
@@ -196,6 +198,7 @@ const MODELS_MASTER = {
             provider: 'openai',
             creditCost: 7, // $1.75
             contextSize: 400000, // 400K Context
+            directOverride: true,
         }
     },
     OPENAI_5_MINI: {
@@ -206,6 +209,7 @@ const MODELS_MASTER = {
             provider: 'openai',
             creditCost: 1, // $0.25 (BASELINE)
             contextSize: 400000, // 400K Context
+            directOverride: true,
         }
     },
     // Below configs are commented for now, may be supported in the future
