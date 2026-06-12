@@ -5,6 +5,7 @@
  {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "stunning-site-production",
+	"account_id": "35bc7a4522237728214ba9d54c36002e",
 	"main": "worker/index.ts",
 	"compatibility_date": "2025-08-10",
 	"compatibility_flags": ["nodejs_compat"],
