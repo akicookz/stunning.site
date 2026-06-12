@@ -7,6 +7,7 @@
 interface Env {
 	RESEND_API_KEY?: string;
 	EMAIL_FROM?: string;
+	SEND_EMAIL?: { send(message: unknown): Promise<void> };
 }
 
 declare module 'cloudflare:email' {

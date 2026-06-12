@@ -185,18 +185,19 @@
         "CUSTOM_DOMAIN": "localhost:5173",
         "MAX_SANDBOX_INSTANCES": "10",
         "SANDBOX_INSTANCE_TYPE": "standard-3",
-        // Sender for transactional email (verification OTPs). With Resend,
-        // the domain must be verified in your Resend account.
-        "EMAIL_FROM": ""
+        // Sender for transactional email (verification OTPs). Must be an
+        // address on a zone with Email Routing enabled.
+        "EMAIL_FROM": "stunning.site <no-reply@stunning.site>"
     },
-    // Optional: Cloudflare Email Workers sending. Requires Email Routing
-    // enabled on the zone; can only deliver to verified destination
-    // addresses, so prefer RESEND_API_KEY for open registration.
-    // "send_email": [
-    //     {
-    //         "name": "SEND_EMAIL"
-    //     }
-    // ],
+    // Cloudflare Email Workers sending (primary email provider). Requires
+    // Email Routing enabled on the zone in production; in local dev wrangler
+    // simulates sends. Note: can only deliver to destination addresses
+    // verified on the zone.
+    "send_email": [
+        {
+            "name": "SEND_EMAIL"
+        }
+    ],
 	"workers_dev": false,
 	"preview_urls": false
 }

@@ -4,7 +4,7 @@
  */
 
 import * as schema from '../schema';
-import { eq, and, sql, or, lt, isNull } from 'drizzle-orm';
+import { eq, and, sql, or, lt, gt, isNull } from 'drizzle-orm';
 import { JWTUtils } from '../../utils/jwtUtils';
 import { generateSecureToken } from '../../utils/cryptoUtils';
 import { SessionService } from './SessionService';
@@ -551,9 +551,11 @@ export class AuthService extends BaseService {
 
         try {
             const emailProvider = createEmailProvider(this.env);
-            await emailProvider.send(
-                buildVerificationOtpEmail(email, otp, this.env.CUSTOM_DOMAIN || 'stunning.site'),
-            );
+            const appName =
+                this.env.CUSTOM_DOMAIN && !this.env.CUSTOM_DOMAIN.includes('localhost')
+                    ? this.env.CUSTOM_DOMAIN
+                    : 'stunning.site';
+            await emailProvider.send(buildVerificationOtpEmail(email, otp, appName));
             logger.info('Verification OTP sent', {
                 email,
                 provider: emailProvider.name,
@@ -578,7 +580,7 @@ export class AuthService extends BaseService {
                     and(
                         eq(schema.verificationOtps.email, email.toLowerCase()),
                         eq(schema.verificationOtps.used, false),
-                        sql`${schema.verificationOtps.expiresAt} > ${new Date()}`
+                        gt(schema.verificationOtps.expiresAt, new Date())
                     )
                 )
                 .orderBy(sql`${schema.verificationOtps.createdAt} DESC`)
