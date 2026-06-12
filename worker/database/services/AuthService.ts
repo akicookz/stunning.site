@@ -27,6 +27,7 @@ import { createLogger } from '../../logger';
 import { validateEmail, validatePassword } from '../../utils/validationUtils';
 import { extractRequestMetadata } from '../../utils/authUtils';
 import { BaseService } from './BaseService';
+import { createEmailProvider, buildVerificationOtpEmail } from '../../services/email';
 
 const logger = createLogger('AuthService');
 
@@ -548,8 +549,20 @@ export class AuthService extends BaseService {
             createdAt: new Date()
         });
 
-        // TODO: Send email with OTP (integrate with email service)
-        logger.info('Verification OTP generated', { email, otp: otp.slice(0, 2) + '****' });
+        try {
+            const emailProvider = createEmailProvider(this.env);
+            await emailProvider.send(
+                buildVerificationOtpEmail(email, otp, this.env.CUSTOM_DOMAIN || 'stunning.site'),
+            );
+            logger.info('Verification OTP sent', {
+                email,
+                provider: emailProvider.name,
+                otp: otp.slice(0, 2) + '****',
+            });
+        } catch (error) {
+            // Verification is non-blocking: log and let registration proceed
+            logger.error('Failed to send verification OTP email', { email, error });
+        }
     }
 
     /**

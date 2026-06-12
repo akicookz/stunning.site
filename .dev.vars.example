@@ -40,3 +40,6 @@ WEBHOOK_SECRET=""
 # Cloudflare API Key and Account ID. This is important
 # CLOUDFLARE_API_TOKEN=""
 # CLOUDFLARE_ACCOUNT_ID=""
+# Transactional email (verification OTPs). Falls back to console logging in dev.
+#RESEND_API_KEY=""
+#EMAIL_FROM="stunning.site <noreply@yourdomain.com>"
