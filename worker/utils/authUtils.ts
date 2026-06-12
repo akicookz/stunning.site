@@ -151,6 +151,15 @@ export interface CookieOptions {
 }
 
 /**
+ * Whether the request arrived over HTTPS. Cookies must omit the Secure
+ * attribute on plain-http local dev: Safari refuses to store Secure cookies
+ * over http, including on localhost.
+ */
+export function isSecureRequest(request: Request): boolean {
+	return new URL(request.url).protocol === 'https:';
+}
+
+/**
  * Create secure cookie string with all options
  */
 export function createSecureCookie(options: CookieOptions): string {
@@ -186,6 +195,7 @@ export function setSecureAuthCookies(
 		accessToken: string;
 		accessTokenExpiry?: number; // seconds
 	},
+	request?: Request,
 ): void {
 	const {
 		accessToken,
@@ -200,6 +210,7 @@ export function setSecureAuthCookies(
 			value: accessToken,
 			maxAge: accessTokenExpiry,
 			sameSite: 'Lax',
+			secure: request ? isSecureRequest(request) : true,
 		}),
 	);
 }

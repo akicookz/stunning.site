@@ -6,7 +6,7 @@
 import { createLogger } from '../../logger';
 import { SecurityError, SecurityErrorType } from 'shared/types/errors';
 import { generateSecureToken } from '../../utils/cryptoUtils';
-import { parseCookies, createSecureCookie } from '../../utils/authUtils';
+import { parseCookies, createSecureCookie, isSecureRequest } from '../../utils/authUtils';
 import { getCSRFConfig } from '../../config/security';
 import { captureSecurityEvent } from '../../observability/sentry';
 import { env } from 'cloudflare:workers'
@@ -33,17 +33,18 @@ export class CsrfService {
     /**
      * Set CSRF token cookie with timestamp
      */
-    static setTokenCookie(response: Response, token: string, maxAge: number = 7200): void {
+    static setTokenCookie(response: Response, token: string, maxAge: number = 7200, request?: Request): void {
         const tokenData: CSRFTokenData = {
             token,
             timestamp: Date.now()
         };
-        
+
         const cookie = createSecureCookie({
             name: this.COOKIE_NAME,
             value: JSON.stringify(tokenData),
             sameSite: 'Strict',
-            maxAge
+            maxAge,
+            secure: request ? isSecureRequest(request) : true
         });
         response.headers.append('Set-Cookie', cookie);
     }
@@ -190,7 +191,7 @@ export class CsrfService {
             if (!existingToken) {
                 const newToken = this.generateToken();
                 const maxAge = Math.floor(this.defaults.tokenTTL / 1000);
-                this.setTokenCookie(response, newToken, maxAge);
+                this.setTokenCookie(response, newToken, maxAge, request);
                 logger.debug('New CSRF token generated for GET request');
             }
             return;
@@ -233,11 +234,11 @@ export class CsrfService {
     /**
      * Rotate CSRF token (generate new token and invalidate old one)
      */
-    static rotateToken(response: Response): string {
+    static rotateToken(response: Response, request?: Request): string {
         const newToken = this.generateToken();
         const maxAge = Math.floor(this.defaults.tokenTTL / 1000);
-        
-        this.setTokenCookie(response, newToken, maxAge);
+
+        this.setTokenCookie(response, newToken, maxAge, request);
         logger.info('CSRF token rotated');
         
         return newToken;

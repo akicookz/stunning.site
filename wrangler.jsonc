@@ -53,7 +53,8 @@
 	 */
 	"ai": {
 		"binding": "AI",
-        "remote": false
+        // Workers AI has no local simulation; always proxies to the real API
+        "remote": true
 	},
     // Disabled for local dev: dispatch namespaces require the Workers for
     // Platforms subscription and have no local simulation. The worker guards
