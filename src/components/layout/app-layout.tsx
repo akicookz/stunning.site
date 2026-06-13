@@ -12,9 +12,23 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { pathname } = useLocation();
+
+  // The chat workspace is a full-bleed editor (chat | preview) with its own
+  // top bar, so we drop the global sidebar + header here entirely.
+  const isWorkspace = pathname.startsWith('/chat/');
+  if (isWorkspace) {
+    return (
+      <AppsDataProvider>
+        <div className="bg-bg-3 h-screen w-screen overflow-hidden">
+          {children || <Outlet />}
+        </div>
+      </AppsDataProvider>
+    );
+  }
+
   return (
     <AppsDataProvider>
-      <SidebarProvider 
+      <SidebarProvider
         defaultOpen={false}
         style={{
           "--sidebar-width": "320px",

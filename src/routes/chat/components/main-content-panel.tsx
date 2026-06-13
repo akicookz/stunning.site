@@ -66,6 +66,9 @@ interface MainContentPanelProps {
 	behaviorType?: BehaviorType;
 	websocket?: WebSocket;
 
+	// Extra actions appended to every view header (e.g. Share / Publish)
+	extraHeaderActions?: ReactNode;
+
 	// Refs
 	previewRef: RefObject<HTMLIFrameElement | null>;
 	editorRef: RefObject<HTMLDivElement | null>;
@@ -99,6 +102,7 @@ export function MainContentPanel(props: MainContentPanelProps) {
 		githubExport,
 		behaviorType,
 		websocket,
+		extraHeaderActions,
 		previewRef,
 		editorRef,
 		templateDetails,
@@ -131,7 +135,14 @@ export function MainContentPanel(props: MainContentPanelProps) {
 				{...commonHeaderProps}
 				{...headerOverrides}
 				centerContent={centerContent}
-				rightActions={rightActions}
+				rightActions={
+					(rightActions || extraHeaderActions) ? (
+						<div className="flex items-center gap-1.5">
+							{rightActions}
+							{extraHeaderActions}
+						</div>
+					) : undefined
+				}
 			/>
 			{viewContent}
 		</ViewContainer>

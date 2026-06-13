@@ -8,7 +8,8 @@ import {
 } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router';
 import { motion } from 'framer-motion';
-import { LoaderCircle, MoreHorizontal, RotateCcw } from 'lucide-react';
+import { LoaderCircle, MoreHorizontal, RotateCcw, Share2, Rocket } from 'lucide-react';
+import { toast } from 'sonner';
 import clsx from 'clsx';
 import { UserMessage, AIMessage } from './components/messages';
 import { PhaseTimeline } from './components/phase-timeline';
@@ -32,6 +33,7 @@ import { detectContentType, isDocumentationPath, isMarkdownFile } from './utils/
 import { mergeFiles } from '@/utils/file-helpers';
 import { ChatModals } from './components/chat-modals';
 import { MainContentPanel } from './components/main-content-panel';
+import { ProjectMenu } from './components/project-menu';
 import { PlanPanel } from './components/plan-panel';
 import { ViewContainer } from './components/view-container';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
@@ -352,6 +354,18 @@ export default function Chat() {
 		sendWebSocketMessage(websocket, 'clear_conversation');
 		setIsResetDialogOpen(false);
 	}, [websocket]);
+
+	const handleShare = useCallback(() => {
+		const url = cloudflareDeploymentUrl || previewUrl;
+		if (!url) {
+			toast.info('Nothing to share yet — build the app first');
+			return;
+		}
+		navigator.clipboard
+			.writeText(url)
+			.then(() => toast.success('Link copied to clipboard'))
+			.catch(() => toast.error('Could not copy link'));
+	}, [cloudflareDeploymentUrl, previewUrl]);
 
 	// // Terminal functions
 	// const handleTerminalCommand = useCallback((command: string) => {
@@ -680,6 +694,39 @@ export default function Chat() {
 		});
 	}
 
+	const projectSubtitle = isGenerating
+		? 'Generating…'
+		: isGeneratingBlueprint
+			? 'Planning…'
+			: awaitingPlanReview
+				? 'Reviewing plan'
+				: isDeploying
+					? 'Publishing…'
+					: 'Ready';
+
+	const previewTopActions = chatId ? (
+		<div className="flex items-center gap-1.5">
+			<Button
+				variant="ghost"
+				size="sm"
+				className="h-7 gap-1.5 px-2 text-xs"
+				onClick={handleShare}
+			>
+				<Share2 className="size-3.5" />
+				Share
+			</Button>
+			<Button
+				size="sm"
+				className="h-7 gap-1.5 px-2.5 text-xs"
+				disabled={isDeploying}
+				onClick={() => handleDeployToCloudflare(chatId)}
+			>
+				<Rocket className="size-3.5" />
+				{isDeploying ? 'Publishing…' : 'Publish'}
+			</Button>
+		</div>
+	) : undefined;
+
 	return (
 		<div className="size-full flex flex-col min-h-0 text-text-primary">
 			<ResizablePanelGroup
@@ -692,6 +739,19 @@ export default function Chat() {
 					minSize={28}
 					className="flex flex-col min-h-0 relative z-10"
 				>
+					<div className="shrink-0 flex items-center justify-between gap-2 px-2 h-13 border-b border-border-primary">
+						<ProjectMenu
+							title={appTitle || query || displayQuery || 'New Project'}
+							subtitle={projectSubtitle}
+							user={user}
+							canReset={!!chatId}
+							onResetConversation={() => setIsResetDialogOpen(true)}
+							onGitHubExport={githubExport.openModal}
+							onDeploy={chatId ? () => handleDeployToCloudflare(chatId) : undefined}
+							deploymentUrl={cloudflareDeploymentUrl}
+							isDeploying={isDeploying}
+						/>
+					</div>
 					<div
 					className={clsx(
 						'flex-1 overflow-y-auto min-h-0 chat-messages-scroll',
@@ -706,16 +766,9 @@ export default function Chat() {
 									Loading app...
 								</div>
 							) : (
-								<>
-									{(appTitle || chatId) && (
-								<div className="flex items-center justify-between mb-2">
-									<div className="text-lg font-semibold">{appTitle}</div>
-								</div>
-							)}
-									<UserMessage
-										message={query ?? displayQuery}
-									/>
-								</>
+								<UserMessage
+									message={query ?? displayQuery}
+								/>
 							)}
 
 							{mainMessage && (
@@ -931,6 +984,7 @@ export default function Chat() {
 								githubExport={githubExport}
 								behaviorType={behaviorType}
 								websocket={websocket}
+								extraHeaderActions={previewTopActions}
 								previewRef={previewRef}
 								editorRef={editorRef}
 								templateDetails={templateDetails}
