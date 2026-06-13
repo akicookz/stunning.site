@@ -52,6 +52,7 @@ export function useChat({
 	query: userQuery,
 	images: userImages,
 	projectType = 'app',
+	planMode = false,
 	onDebugMessage,
 	onTerminalMessage,
 	onVaultUnlockRequired,
@@ -60,6 +61,7 @@ export function useChat({
 	query: string | null;
 	images?: ImageAttachment[];
 	projectType?: ProjectType;
+	planMode?: boolean;
 	onDebugMessage?: (type: 'error' | 'warning' | 'info' | 'websocket', message: string, details?: string, source?: string, messageType?: string, rawMessage?: unknown) => void;
 	onTerminalMessage?: (log: { id: string; content: string; type: 'command' | 'stdout' | 'stderr' | 'info' | 'error' | 'warn' | 'debug'; timestamp: number; source?: string }) => void;
 	onVaultUnlockRequired?: (reason: string) => void;
@@ -344,11 +346,15 @@ export function useChat({
 					// Always request conversation state explicitly (running/full history)
 					sendWebSocketMessage(ws, 'get_conversation_state');
 
-					// Request file generation for new chats only
-					if (!disableGenerate && urlChatId === 'new') {
+					// Request file generation for new chats only.
+					// In plan mode we hold off and wait for the user to review the plan
+					// and answer any clarifying questions before building.
+					if (!disableGenerate && urlChatId === 'new' && !planMode) {
 						logger.debug('🔄 Starting code generation for new chat');
 						setIsGenerating(true);
 						sendWebSocketMessage(ws, 'generate_all');
+					} else if (planMode && urlChatId === 'new') {
+						logger.debug('📝 Plan mode: holding generation until user reviews the plan');
 					}
 				});
 
@@ -392,7 +398,7 @@ export function useChat({
 				handleConnectionFailureRef.current?.(wsUrl, disableGenerate, 'Connection setup failed');
 			}
 		},
-		[maxRetries, handleWebSocketMessage, urlChatId],
+		[maxRetries, handleWebSocketMessage, urlChatId, planMode],
 	);
 
 	// Handle connection failures with exponential backoff retry
@@ -740,9 +746,33 @@ export function useChat({
 		}
 	}, [websocket, sendMessage, isDeploying, onDebugMessage]);
 
+	// Plan mode: submit answers to clarifying questions (or confirm with none),
+	// which folds them into the blueprint server-side and kicks off generation.
+	const submitPlanAnswers = useCallback((answers: Record<string, string | string[]> = {}) => {
+		if (!sendWebSocketMessage(websocket, 'submit_plan_answers', { answers })) return;
+		setIsGenerating(true);
+		updateStage('code', { status: 'active' });
+	}, [websocket, updateStage]);
+
+	// We are awaiting plan review when, in plan mode, generation has not started
+	// yet (no files, code stage idle). The user confirms via submitPlanAnswers.
+	const awaitingPlanReview = useMemo(() => {
+		if (!planMode) return false;
+		const codeStatus = projectStages.find((stage) => stage.id === 'code')?.status;
+		return (
+			!isGenerating &&
+			files.length === 0 &&
+			codeStatus !== 'active' &&
+			codeStatus !== 'completed'
+		);
+	}, [planMode, isGenerating, files.length, projectStages]);
+
 	const allFiles = useMemo(() => mergeFiles(bootstrapFiles, files), [bootstrapFiles, files]);
 
 	return {
+		planMode,
+		awaitingPlanReview,
+		submitPlanAnswers,
 		messages,
 		edit,
 		bootstrapFiles,

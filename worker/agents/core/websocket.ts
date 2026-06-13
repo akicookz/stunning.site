@@ -13,6 +13,7 @@ interface IncomingWebSocketMessage {
     message?: string;
     images?: ImageAttachment[];
     credentials?: CredentialsPayload;
+    answers?: Record<string, string | string[]>;
     data?: {
         url?: string;
         viewport?: unknown;
@@ -252,6 +253,26 @@ export async function handleWebSocketMessage(
                 logger.info('Clearing conversation history');
                 agent.clearConversation();
                 break;
+            case WebSocketMessageRequests.SUBMIT_PLAN_ANSWERS: {
+                // User answered plan-mode clarifying questions (or confirmed without answers).
+                logger.info('Received plan answers, starting generation', {
+                    answerCount: parsedMessage.answers ? Object.keys(parsedMessage.answers).length : 0,
+                });
+
+                // Persist generation intent immediately so reconnects auto-resume.
+                agent.setState({ ...agent.state, shouldBeGenerating: true });
+
+                if (agent.getBehavior().isCodeGenerating()) {
+                    logger.info('Generation already in progress, ignoring duplicate plan answers');
+                    return;
+                }
+
+                agent.handlePlanAnswers(parsedMessage.answers ?? {}).catch((error: unknown) => {
+                    logger.error('Error handling plan answers:', error);
+                    sendError(connection, `Error starting generation: ${error instanceof Error ? error.message : String(error)}`);
+                });
+                break;
+            }
             case WebSocketMessageRequests.VAULT_UNLOCKED:
                 agent.handleVaultUnlocked();
                 break;

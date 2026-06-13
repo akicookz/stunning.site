@@ -168,6 +168,7 @@ export type {
 export type {
   Blueprint as BlueprintType,
   PhasicBlueprint,
+  ClarifyingQuestion,
   CodeReviewOutputType,
   FileConceptType,
   FileOutputType as GeneratedFile,

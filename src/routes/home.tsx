@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '@/contexts/auth-context';
 import { ProjectModeSelector, type ProjectModeOption } from '../components/project-mode-selector';
+import { PlanModeToggle } from '@/components/plan-mode-toggle';
 import { MAX_AGENT_QUERY_LENGTH, SUPPORTED_IMAGE_MIME_TYPES, type ProjectType } from '@/api-types';
 import { useFeature } from '@/features';
 import { useAuthGuard } from '../hooks/useAuthGuard';
@@ -22,6 +23,7 @@ export default function Home() {
 	const navigate = useNavigate();
 	const { requireAuth } = useAuthGuard();
 	const [projectMode, setProjectMode] = useState<ProjectType>('app');
+	const [planFirst, setPlanFirst] = useState(true);
 	const [query, setQuery] = useState('');
 	const { user } = useAuth();
 	const { isLoadingCapabilities, capabilities, getEnabledFeatures } = useFeature();
@@ -108,7 +110,8 @@ export default function Home() {
 
 		// Encode images as JSON if present
 		const imageParam = images.length > 0 ? `&images=${encodeURIComponent(JSON.stringify(images))}` : '';
-		const intendedUrl = `/chat/new?query=${encodedQuery}&projectType=${encodedMode}${imageParam}`;
+		const planParam = planFirst ? '&plan=1' : '';
+		const intendedUrl = `/chat/new?query=${encodedQuery}&projectType=${encodedMode}${imageParam}${planParam}`;
 
 		if (
 			!requireAuth({
@@ -202,14 +205,16 @@ export default function Home() {
 							variant="expanded"
 							submitIcon={user && usageLimitsLoading ? <Loader2 className="animate-spin" /> : <ArrowRight />}
 							leftActions={
-								showModeSelector ? (
-									<ProjectModeSelector
-										value={projectMode}
-										onChange={setProjectMode}
-										modes={modeOptions}
-										className="flex-1"
-									/>
-								) : undefined
+								<div className="flex items-center gap-2">
+									{showModeSelector && (
+										<ProjectModeSelector
+											value={projectMode}
+											onChange={setProjectMode}
+											modes={modeOptions}
+										/>
+									)}
+									<PlanModeToggle value={planFirst} onChange={setPlanFirst} />
+								</div>
 							}
 						/>
 					</motion.div>

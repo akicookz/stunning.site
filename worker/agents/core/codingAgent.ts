@@ -559,6 +559,69 @@ export class CodeGeneratorAgent extends Agent<Env, AgentState> implements AgentI
             this.broadcastError('Error processing user input', error);
         }
     }
+
+    /**
+     * Handle answers to plan-mode clarifying questions.
+     * Folds the answers into the blueprint (so every downstream phase sees them),
+     * clears the questions, then starts code generation. Empty answers act as a
+     * plain "start building" confirmation.
+     */
+    async handlePlanAnswers(answers: Record<string, string | string[]> = {}): Promise<void> {
+        try {
+            const blueprint = this.state.blueprint as Blueprint | undefined;
+            const questions = blueprint?.clarifyingQuestions ?? [];
+
+            const normalize = (raw: string | string[] | undefined): string =>
+                Array.isArray(raw) ? raw.filter(Boolean).join(', ') : (raw ?? '').toString().trim();
+
+            // Pair each answer with its question text; keep ordering stable.
+            const qaLines: string[] = [];
+            for (const q of questions) {
+                const answer = normalize(answers[q.id]);
+                if (answer) qaLines.push(`- **${q.question}** ${answer}`);
+            }
+            // Defensive: include answers that don't map to a known question id.
+            for (const [id, raw] of Object.entries(answers)) {
+                if (questions.some(q => q.id === id)) continue;
+                const answer = normalize(raw);
+                if (answer) qaLines.push(`- ${answer}`);
+            }
+
+            this.logger().info('Processing plan answers', {
+                questionCount: questions.length,
+                answeredCount: qaLines.length,
+            });
+
+            if (blueprint) {
+                const clarifications = qaLines.length > 0
+                    ? `\n\n## User Clarifications\nThe user answered the following clarifying questions during planning. Honor these answers throughout the build:\n${qaLines.join('\n')}`
+                    : '';
+                const updatedBlueprint = { ...blueprint, clarifyingQuestions: undefined };
+                if (clarifications) {
+                    if ('detailedDescription' in updatedBlueprint && updatedBlueprint.detailedDescription) {
+                        updatedBlueprint.detailedDescription = `${updatedBlueprint.detailedDescription}${clarifications}`;
+                    } else {
+                        updatedBlueprint.description = `${updatedBlueprint.description}${clarifications}`;
+                    }
+                }
+                this.setState({ ...this.state, blueprint: updatedBlueprint } as AgentState);
+            }
+
+            // Mirror the generate_all path: persist intent and kick off generation if idle.
+            this.setState({ ...this.state, shouldBeGenerating: true });
+            if (!this.behavior.isCodeGenerating()) {
+                this.behavior.generateAllFiles().catch(error => {
+                    this.logger().error('Error starting generation after plan answers:', error);
+                });
+            }
+        } catch (error) {
+            if (error instanceof RateLimitExceededError) {
+                this.broadcast(WebSocketMessageResponses.RATE_LIMIT_ERROR, { error });
+                return;
+            }
+            this.broadcastError('Error processing plan answers', error);
+        }
+    }
     // ==========================================
     // WebSocket Management
     // ==========================================

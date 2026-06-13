@@ -82,12 +82,21 @@ export const CodeReviewOutput = z.object({
     commands: z.array(z.string()).describe('Commands that might be needed to run for fixing an issue. Empty array if no commands are needed'),
 });
 
+export const ClarifyingQuestionSchema = z.object({
+    id: z.string().describe('Stable identifier for the question, e.g. a short kebab-case slug'),
+    question: z.string().describe('A single, concise question to ask the user'),
+    type: z.enum(['text', 'textarea', 'select', 'multiselect']).describe('How the answer should be collected: short text, long text, single choice, or multiple choice'),
+    options: z.array(z.string()).optional().describe('Choices for select/multiselect questions. Omit for text/textarea.'),
+    placeholder: z.string().optional().describe('Optional placeholder/hint for text and textarea questions'),
+});
+
 export const SimpleBlueprintSchema = z.object({
     title: z.string().describe('Title for the project'),
     projectName: z.string().describe('Name for the project, in small case, no special characters, no spaces, no dots. Only letters, numbers, hyphens, underscores are allowed.'),
     description: z.string().describe('Short, brief, concise description of the project in a single sentence'),
     colorPalette: z.array(z.string()).describe('Color palette RGB codes to be used in the project, only base colors and not their shades, max 3 colors'),
     frameworks: z.array(z.string()).describe('Essential Frameworks, libraries and dependencies to be used in the project, with only major versions optionally specified'),
+    clarifyingQuestions: z.array(ClarifyingQuestionSchema).max(4).optional().describe('ONLY when the client request is genuinely ambiguous: up to 4 concise questions whose answers would materially change what gets built (scope, audience, key features, data, integrations). Omit this field entirely when the request is clear enough to build confidently. Never ask about visual styling/colors, those are your job.'),
 });
 
 export const PhasicBlueprintSchema = SimpleBlueprintSchema.extend({
@@ -151,6 +160,7 @@ export const ScreenshotAnalysisSchema = z.object({
 });
 
 export type TemplateSelection = z.infer<typeof TemplateSelectionSchema>;
+export type ClarifyingQuestion = z.infer<typeof ClarifyingQuestionSchema>;
 export type PhasicBlueprint = z.infer<typeof PhasicBlueprintSchema>;
 export type LitePhasicBlueprint = z.infer<typeof LitePhasicBlueprintSchema>;
 export type AgenticBlueprint = z.infer<typeof AgenticBlueprintSchema>;

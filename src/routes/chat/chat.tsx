@@ -7,7 +7,7 @@ import {
 	type FormEvent,
 } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { LoaderCircle, MoreHorizontal, RotateCcw } from 'lucide-react';
 import clsx from 'clsx';
 import { UserMessage, AIMessage } from './components/messages';
@@ -32,6 +32,9 @@ import { detectContentType, isDocumentationPath, isMarkdownFile } from './utils/
 import { mergeFiles } from '@/utils/file-helpers';
 import { ChatModals } from './components/chat-modals';
 import { MainContentPanel } from './components/main-content-panel';
+import { PlanPanel } from './components/plan-panel';
+import { ViewContainer } from './components/view-container';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { ChatInput } from './components/chat-input';
 import { useVault } from '@/hooks/use-vault';
 import { VaultUnlockModal } from '@/components/vault';
@@ -47,6 +50,9 @@ export default function Chat() {
 	const [searchParams] = useSearchParams();
 	const userQuery = searchParams.get('query');
 	const urlProjectType = searchParams.get('projectType') || 'app';
+	// Captured once at mount so it survives the URL replace that happens after
+	// the chat session is created (which drops the ?plan= query param).
+	const [planMode] = useState(() => searchParams.get('plan') === '1');
 
 	// Extract images from URL params if present
 	const userImages = useMemo(() => {
@@ -149,6 +155,9 @@ export default function Chat() {
 		projectType,
 		// Template metadata
 		templateDetails,
+		// Plan mode (clarifying questions before build)
+		awaitingPlanReview,
+		submitPlanAnswers,
 		// Backend error dialog state
 		backendErrorDialog,
 		setBackendErrorDialog,
@@ -157,6 +166,7 @@ export default function Chat() {
 		query: userQuery,
 		images: userImages,
 		projectType: urlProjectType as ProjectType,
+		planMode,
 		onDebugMessage: addDebugMessage,
 		onVaultUnlockRequired: handleVaultUnlockRequired,
 	});
@@ -516,11 +526,13 @@ export default function Chat() {
 
 	useEffect(() => {
 		if (chatId) {
-			navigate(`/chat/${chatId}`, {
+			// Preserve plan mode across the URL replace so a refresh mid-plan-review
+			// still shows the plan surface instead of auto-resuming.
+			navigate(`/chat/${chatId}${planMode ? '?plan=1' : ''}`, {
 				replace: true,
 			});
 		}
-	}, [chatId, navigate]);
+	}, [chatId, navigate, planMode]);
 
 	useEffect(() => {
 		if (!edit) return;
@@ -670,16 +682,21 @@ export default function Chat() {
 
 	return (
 		<div className="size-full flex flex-col min-h-0 text-text-primary">
-			<div className="flex-1 flex min-h-0 overflow-hidden justify-center">
-				<motion.div
-					layout="position"
-					className="flex-1 shrink-0 flex flex-col basis-0 max-w-lg relative z-10 h-full min-h-0"
+			<ResizablePanelGroup
+				direction="horizontal"
+				autoSaveId="chat-split"
+				className="flex-1 min-h-0"
+			>
+				<ResizablePanel
+					defaultSize={40}
+					minSize={28}
+					className="flex flex-col min-h-0 relative z-10"
 				>
-					<div 
+					<div
 					className={clsx(
 						'flex-1 overflow-y-auto min-h-0 chat-messages-scroll',
 						isDebugging && 'animate-debug-pulse'
-					)} 
+					)}
 					ref={messagesContainerRef}
 				>
 						<div className="pt-5 px-4 pb-4 text-sm flex flex-col gap-5">
@@ -871,17 +888,22 @@ export default function Chat() {
 					limitsData={limitsData}
 					onConnectCloudflare={() => { window.location.href = `/oauth/login?return_url=${encodeURIComponent(window.location.href)}`; }}
 				/>
-				</motion.div>
+				</ResizablePanel>
 
-				<AnimatePresence mode="wait">
-					{showMainView && (
-						<motion.div
-							key="main-content-panel"
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							className="flex-1 flex shrink-0 basis-0 p-4 pl-0 ml-2 z-30 min-h-0"
-						>
+				<ResizableHandle withHandle />
+
+				<ResizablePanel
+					defaultSize={60}
+					minSize={30}
+					className="flex min-h-0 p-4 pl-2 z-30"
+				>
+					{awaitingPlanReview ? (
+						<PlanPanel
+							blueprint={blueprint}
+							isGeneratingBlueprint={isGeneratingBlueprint}
+							onSubmit={submitPlanAnswers}
+						/>
+					) : showMainView ? (
 							<MainContentPanel
 								view={view}
 								onViewChange={handleViewModeChange}
@@ -913,10 +935,15 @@ export default function Chat() {
 								editorRef={editorRef}
 								templateDetails={templateDetails}
 							/>
-						</motion.div>
+					) : (
+						<ViewContainer>
+							<div className="flex-1 flex items-center justify-center bg-bg-3 text-text-50/40 text-sm">
+								Preparing your workspace…
+							</div>
+						</ViewContainer>
 					)}
-				</AnimatePresence>
-			</div>
+				</ResizablePanel>
+			</ResizablePanelGroup>
 
 			<ChatModals
 				debugMessages={debugMessages}

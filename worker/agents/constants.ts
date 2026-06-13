@@ -109,6 +109,9 @@ export const WebSocketMessageRequests = {
     USER_SUGGESTION: 'user_suggestion',
     CLEAR_CONVERSATION: 'clear_conversation',
     GET_CONVERSATION_STATE: 'get_conversation_state',
+
+    // Plan-mode clarifying question answers
+    SUBMIT_PLAN_ANSWERS: 'submit_plan_answers',
     
     // Model configuration info request
     GET_MODEL_CONFIGS: 'get_model_configs',

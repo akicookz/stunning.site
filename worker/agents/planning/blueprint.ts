@@ -62,6 +62,9 @@ const SIMPLE_SYSTEM_PROMPT = `<ROLE>
     • Each step should be a clear, achievable milestone
     • Order steps by dependency and priority
     • Keep descriptions brief but actionable
+
+    ## Clarifying Questions (only if truly needed)
+    • Populate \`clarifyingQuestions\` (max 4) ONLY when the request is genuinely ambiguous and answers would change WHAT you build. Prefer to decide yourself and leave it empty. Never ask about visual styling. Use select/multiselect with concrete options when choices are enumerable.
 </INSTRUCTIONS>
 
 <STARTING TEMPLATE>
@@ -169,6 +172,13 @@ const PHASIC_SYSTEM_PROMPT = `<ROLE>
     ❌ Never: .png, .jpg, .svg, .gif files in phase files list
     Binary files cannot be generated. Always use the approaches above for visual content.
     Do not recommend installing \`cloudflare:workers\` or \`cloudflare:durable-objects\` as dependencies, these are already installed in the project always.
+
+    ## Clarifying Questions (only if truly needed)
+    • Populate the \`clarifyingQuestions\` field ONLY when the client's request is genuinely ambiguous and the answers would materially change WHAT you build (e.g. core scope, target audience, must-have features, data sources, required integrations or auth).
+    • Prefer to make sensible product decisions yourself and leave \`clarifyingQuestions\` empty. When in doubt, do NOT ask. A clear request (e.g. "a 2048 game", "a markdown note taker") needs ZERO questions.
+    • Never ask about visual design, colors, fonts, or styling - those are your responsibility, not the user's.
+    • Keep it to at most 4 short, high-signal questions. Use \`select\`/\`multiselect\` with concrete \`options\` when the choices are enumerable; use \`text\`/\`textarea\` otherwise.
+    • Still produce your best-guess blueprint alongside the questions - the answers refine it, they do not replace it.
 </INSTRUCTIONS>
 
 <KEY GUIDELINES>
@@ -262,6 +272,9 @@ const LITE_PHASIC_SYSTEM_PROMPT = `<ROLE>
     ## Visual Assets
     Use external image URLs (unsplash.com, placehold.co), canvas, inline SVG, or icon libraries.
     Never reference .png/.jpg/.svg/.gif files in the phase file list.
+
+    ## Clarifying Questions (only if truly needed)
+    Populate \`clarifyingQuestions\` (max 4) ONLY when the request is genuinely ambiguous and answers would change WHAT you build. Prefer to decide yourself and leave it empty. Never ask about visual styling. Use select/multiselect with concrete options when choices are enumerable.
 </INSTRUCTIONS>
 
 ${STRATEGIES.FRONTEND_FIRST_PLANNING}
