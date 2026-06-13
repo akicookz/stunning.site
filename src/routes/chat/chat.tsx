@@ -202,11 +202,6 @@ export default function Chat() {
 	const { data: limitsData, loading: limitsLoading } = useLimitsContext();
 	const [showLimitDialog, setShowLimitDialog] = useState<React.ReactElement | null>(null);
 	
-	// Debug: Log when backend error dialog state changes
-	useEffect(() => {
-		console.log('🔍 Backend error dialog state changed:', backendErrorDialog);
-	}, [backendErrorDialog]);
-
 	// Model config info state
 	const [modelConfigs, setModelConfigs] = useState<ModelConfigsInfo | undefined>();
 	const [loadingConfigs, setLoadingConfigs] = useState(false);

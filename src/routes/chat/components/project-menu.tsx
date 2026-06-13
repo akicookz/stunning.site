@@ -23,6 +23,7 @@ import {
 	DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
 import { useTheme } from '@/contexts/theme-context';
+import { BrandMark } from '@/components/brand';
 import type { AuthUser } from '@/api-types';
 
 interface ProjectMenuProps {
@@ -66,7 +67,7 @@ export function ProjectMenu({
 					type="button"
 					className="group flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-left hover:bg-bg-2 transition-colors max-w-full"
 				>
-					<span className="size-7 shrink-0 rounded-md bg-gradient-to-br from-accent to-fuchsia-500 shadow-sm" />
+					<BrandMark className="size-7 shrink-0" />
 					<span className="flex flex-col leading-tight min-w-0">
 						<span className="flex items-center gap-1">
 							<span className="text-sm font-semibold text-text-primary truncate max-w-[200px]">

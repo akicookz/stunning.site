@@ -32,7 +32,6 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
 	Dialog,
@@ -55,8 +54,6 @@ import {
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
-// import { SecretsManager } from '@/components/vault';
-// import { ByokApiKeysModal } from '@/components/byok-api-keys-modal';
 import { CloudflareAccountSelector } from '@/components/cloudflare-account-selector';
 
 export default function SettingsPage() {
@@ -105,43 +102,6 @@ export default function SettingsPage() {
 	const [savingConfigs, setSavingConfigs] = useState(false);
 	const [testingConfig, setTestingConfig] = useState<string | null>(null);
 
-	// const handleSaveProfile = async () => {
-	// 	if (isSaving) return;
-
-	// 	try {
-	// 		setIsSaving(true);
-
-	// 		const response = await fetch('/api/auth/profile', {
-	// 			method: 'PUT',
-	// 			credentials: 'include',
-	// 			headers: {
-	// 				'Content-Type': 'application/json',
-	// 			},
-	// 			body: JSON.stringify({
-	// 				...profileData,
-	// 				theme: currentTheme,
-	// 			}),
-	// 		});
-
-	// 		const data = await response.json();
-
-	// 		if (response.ok && data.success) {
-	// 			toast.success('Profile settings saved');
-	// 			// Theme context is already updated by handleThemeChange
-	// 			// Refresh user data in auth context
-	// 			await refreshUser();
-	// 		} else {
-	// 			toast.error(
-	// 				data.error?.message || 'Failed to save profile settings',
-	// 			);
-	// 		}
-	// 	} catch (error) {
-	// 		console.error('Profile save error:', error);
-	// 		toast.error('Failed to save profile settings');
-	// 	} finally {
-	// 		setIsSaving(false);
-	// 	}
-	// };
 
 	// Helper function to format camelCase to human readable
 	const formatAgentConfigName = React.useCallback((key: string) => {
@@ -292,10 +252,6 @@ export default function SettingsPage() {
 		}
 	};
 
-	const handleDeleteAccount = async () => {
-		toast.error('Account deletion is not yet implemented');
-	};
-
 	// Load active sessions
 	const loadActiveSessions = async () => {
 		try {
@@ -439,93 +395,6 @@ export default function SettingsPage() {
 						</p>
 					</div>
 
-					{/* Integrations Section */}
-					{/* <Card id="integrations">
-						<CardHeader variant="minimal">
-							<div className="flex items-center gap-3 border-b w-full py-3 text-text-primary">
-								<Link className="h-4 w-4" />
-								<div>
-									<CardTitle>Integrations</CardTitle>
-								</div>
-							</div>
-						</CardHeader>
-						<CardContent className="space-y-4 px-6 mt-6">
-							{githubIntegration.loading ? (
-								<div className="flex items-center gap-3">
-									<Settings className="h-5 w-5 animate-spin text-text-tertiary" />
-									<span className="text-sm text-text-tertiary">
-										Loading GitHub integration status...
-									</span>
-								</div>
-							) : githubIntegration.hasIntegration ? (
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-3">
-										<div className="h-10 w-10 rounded-full bg-[#24292e] flex items-center justify-center">
-											<GithubIcon className="h-5 w-5 text-white" />
-										</div>
-										<div>
-											<p className="font-medium">
-												GitHub Connected
-											</p>
-											<p className="text-sm text-text-tertiary">
-												@
-												{
-													githubIntegration.githubUsername
-												}
-											</p>
-										</div>
-									</div>
-									<div className="flex items-center gap-2">
-										<Badge
-											variant="secondary"
-											className="bg-green-100 text-green-800"
-										>
-											Connected
-										</Badge>
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={handleDisconnectGithub}
-											className="gap-2"
-										>
-											<Unlink className="h-4 w-4" />
-											Disconnect
-										</Button>
-									</div>
-								</div>
-							) : (
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-3">
-										<div className="h-10 w-10 rounded-full bg-bg-2 border-bg-1 dark:border-bg-4 border flex items-center justify-center">
-											<GithubIcon className="h-5 w-5 text-text-tertiary" />
-										</div>
-										<div>
-											<p className="font-medium">
-												GitHub App for Exports
-											</p>
-											<div className="flex items-center justify-between">
-												<span className="text-text-primary text-xs">
-													Connect your GitHub account to export generated code directly to
-													repositories
-												</span>
-												{githubIntegration.loading && (
-													<RefreshCw className="w-3 h-3 text-text-primary/60 animate-spin" />
-												)}
-											</div>
-										</div>
-									</div>
-									<Button
-										onClick={handleConnectGithub}
-										className="gap-2 bg-text-primary hover:bg-[#1a1e22] text-bg-1"
-									>
-										<GithubIcon className="h-4 w-4" />
-										Install GitHub App
-									</Button>
-								</div>
-							)}
-						</CardContent>
-					</Card> */}
-
 					{/* Cloudflare Account & Gateway Selection */}
 					<CloudflareAccountSelector />
 
@@ -594,7 +463,6 @@ export default function SettingsPage() {
 					</Card>
 
 					{/* User Secrets Vault Section */}
-					{/* <SecretsManager id="secrets" /> */}
 
 					<Card id="api-keys">
 						<CardHeader variant="minimal">
@@ -608,7 +476,7 @@ export default function SettingsPage() {
 						<CardContent className="space-y-4 mt-4 px-6">
 							<div className="flex items-start justify-between gap-4">
 								<div className="space-y-1">
-									<h4 className="font-medium text-sm">VibeSDK API Keys</h4>
+									<h4 className="font-medium text-sm">stunning.site API Keys</h4>
 									<p className="text-sm text-text-secondary">
 										Use these keys to authenticate external SDK clients. The full key is shown only once when created.
 									</p>
@@ -658,7 +526,7 @@ export default function SettingsPage() {
 
 												<div className="rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 p-3">
 													<p className="text-sm text-amber-800 dark:text-amber-200">
-														<strong>Important:</strong> Treat this like a password. Anyone with this key can act as your VibeSDK account.
+														<strong>Important:</strong> Treat this like a password. Anyone with this key can act as your stunning.site account.
 													</p>
 												</div>
 											</div>
@@ -750,7 +618,7 @@ export default function SettingsPage() {
 										<div className="space-y-1">
 											<p className="font-medium">No API keys yet</p>
 											<p className="text-sm text-text-tertiary">
-												Create an API key to use the VibeSDK SDK from your own apps.
+												Create an API key to use the stunning.site API from your own apps.
 											</p>
 										</div>
 									</div>
@@ -928,55 +796,6 @@ export default function SettingsPage() {
 						</CardContent>
 					</Card>
 
-					<div className="space-y-4 p-3">
-						<h4 className="font-medium text-destructive">
-							Danger Zone
-						</h4>
-
-						<div className="flex items-center justify-between">
-							<div>
-								<p className="font-medium text-text-primary">Delete Account</p>
-								<p className="text-sm text-text-tertiary">
-									Permanently delete your account and all data
-								</p>
-							</div>
-							<AlertDialog>
-								<AlertDialogTrigger asChild>
-									<Button
-										variant="destructive"
-										className="gap-2"
-									>
-										<Trash2 className="h-4 w-4" />
-										Delete Account
-									</Button>
-								</AlertDialogTrigger>
-								<AlertDialogContent>
-									<AlertDialogHeader>
-										<AlertDialogTitle>
-											Are you absolutely sure?
-										</AlertDialogTitle>
-										<AlertDialogDescription>
-											This action cannot be undone. This
-											will permanently delete your account
-											and remove all your data from our
-											servers.
-										</AlertDialogDescription>
-									</AlertDialogHeader>
-									<AlertDialogFooter>
-										<AlertDialogCancel>
-											Cancel
-										</AlertDialogCancel>
-										<AlertDialogAction
-											onClick={handleDeleteAccount}
-											className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-										>
-											Delete Account
-										</AlertDialogAction>
-									</AlertDialogFooter>
-								</AlertDialogContent>
-							</AlertDialog>
-						</div>
-					</div>
 				</div>
 			</main>
 		</div>

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, forwardRef, useCallback } from 'react';
 import { RefreshCw, AlertCircle } from 'lucide-react';
 import { WebSocket } from 'partysocket';
+import { logger } from '@/utils/logger';
 
 interface PreviewIframeProps {
     src: string;
@@ -66,10 +67,10 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 					cache: 'no-cache',
 					signal: AbortSignal.timeout(8000),
 				});
-                console.log('Preview availability test response:', response, response.headers.forEach((value, key) => console.log("Header: ",key, value)));
+                logger.debug('Preview availability test response:', response, response.headers.forEach((value, key) => logger.debug("Header: ",key, value)));
 				
 				if (!response.ok) {
-					console.log('Preview not ready (status:', response.status, ')');
+					logger.debug('Preview not ready (status:', response.status, ')');
 					return null;
 				}
 				
@@ -78,19 +79,19 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 				const previewType = response.headers.get('X-Preview-Type');
 				
                 if (previewType === 'sandbox-error') {
-                    console.log('Preview not ready (sandbox error)');
+                    logger.debug('Preview not ready (sandbox error)');
                     return null;
                 } else if (previewType === 'sandbox' || previewType === 'dispatcher') {
-					console.log('Preview available, type:', previewType);
+					logger.debug('Preview available, type:', previewType);
 					return previewType;
 				}
 				
 				// Fallback: If no header present (shouldn't happen with valid origin)
 				// but the response is OK, assume sandbox for backward compatibility
-				console.log('Preview available (type unknown, assuming sandbox)');
+				logger.debug('Preview available (type unknown, assuming sandbox)');
 				return 'sandbox';
 			} catch (error) {
-				console.log('Preview not available yet:', error);
+				logger.debug('Preview not available yet:', error);
 				return null;
 			}
 		}, []);
@@ -100,16 +101,16 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 		 */
 		const requestRedeploy = useCallback(() => {
 			if (!webSocket || webSocket.readyState !== WebSocket.OPEN) {
-				console.warn('Cannot request redeploy: WebSocket not connected');
+				logger.warn('Cannot request redeploy: WebSocket not connected');
 				return;
 			}
 
 			if (hasRequestedRedeployRef.current) {
-				console.log('Redeploy already requested, skipping duplicate request');
+				logger.debug('Redeploy already requested, skipping duplicate request');
 				return;
 			}
 
-			console.log('Requesting automatic preview redeployment');
+			logger.debug('Requesting automatic preview redeployment');
 			
 			try {
 				webSocket.send(JSON.stringify({
@@ -117,7 +118,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 				}));
 				hasRequestedRedeployRef.current = true;
 			} catch (error) {
-				console.error('Failed to send redeploy request:', error);
+				logger.error('Failed to send redeploy request:', error);
 			}
 		}, [webSocket]);
 
@@ -126,11 +127,11 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 		 */
 		const requestScreenshot = useCallback((url: string) => {
 			if (!webSocket || webSocket.readyState !== WebSocket.OPEN) {
-				console.warn('Cannot request screenshot: WebSocket not connected');
+				logger.warn('Cannot request screenshot: WebSocket not connected');
 				return;
 			}
 
-			console.log('Requesting screenshot capture');
+			logger.debug('Requesting screenshot capture');
 			
 			try {
 				webSocket.send(JSON.stringify({
@@ -141,7 +142,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 					},
 				}));
 			} catch (error) {
-				console.error('Failed to send screenshot request:', error);
+				logger.error('Failed to send screenshot request:', error);
 			}
 		}, [webSocket]);
 
@@ -184,7 +185,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 
 			if (previewType) {
 				// Success: put component into postload state, keep loading UI visible
-				console.log(`Preview available (${previewType}) at attempt ${attempt + 1}`);
+				logger.debug(`Preview available (${previewType}) at attempt ${attempt + 1}`);
 				setLoadState({
 					status: 'postload',
 					attempt: attempt + 1,
@@ -195,7 +196,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 
 				// Wait for page to render before revealing iframe and capturing screenshot
 				const waitTime = previewType === 'dispatcher' ? POST_LOAD_WAIT_DISPATCHER : POST_LOAD_WAIT_SANDBOX;
-				console.log(`Waiting ${waitTime}ms before showing preview and capturing screenshot (${previewType} app)`);
+				logger.debug(`Waiting ${waitTime}ms before showing preview and capturing screenshot (${previewType} app)`);
 				postLoadTimeoutRef.current = setTimeout(() => {
 					setLoadState(prev => ({
 						...prev,
@@ -208,7 +209,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 				const delay = getRetryDelay(attempt);
 				const nextAttempt = attempt + 1;
 				
-				console.log(`Preview not ready. Retrying in ${Math.ceil(delay / 1000)}s (attempt ${nextAttempt}/${MAX_RETRIES})`);
+				logger.debug(`Preview not ready. Retrying in ${Math.ceil(delay / 1000)}s (attempt ${nextAttempt}/${MAX_RETRIES})`);
 
 				// Auto-redeploy after 3 failed attempts
 				if (nextAttempt === REDEPLOY_AFTER_ATTEMPT) {
@@ -226,7 +227,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 		 * Force a fresh reload from scratch
 		 */
 		const forceReload = useCallback(() => {
-			console.log('Force reloading preview');
+			logger.debug('Force reloading preview');
 			hasRequestedRedeployRef.current = false;
 			
 			if (retryTimeoutRef.current) {
@@ -260,7 +261,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 		useEffect(() => {
 			if (!src) return;
 
-			console.log('Preview src changed, starting load:', src);
+			logger.debug('Preview src changed, starting load:', src);
 			hasRequestedRedeployRef.current = false;
 			
 			if (retryTimeoutRef.current) {
@@ -299,7 +300,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 		 */
 		useEffect(() => {
 			if (shouldRefreshPreview && loadState.status === 'loaded' && loadState.loadedSrc) {
-				console.log('Auto-refreshing preview after deployment');
+				logger.debug('Auto-refreshing preview after deployment');
 				forceReload();
 			}
 		}, [shouldRefreshPreview, loadState.status, loadState.loadedSrc, forceReload]);
@@ -309,7 +310,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 		 */
 		useEffect(() => {
 			if (manualRefreshTrigger && manualRefreshTrigger > 0) {
-				console.log('Manual refresh triggered');
+				logger.debug('Manual refresh triggered');
 				forceReload();
 			}
 		}, [manualRefreshTrigger, forceReload]);
@@ -343,7 +344,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
 					title={title}
 					style={{ border: 'none' }}
 					onError={() => {
-						console.error('Iframe failed to load');
+						logger.error('Iframe failed to load');
 						setLoadState(prev => ({
 							...prev,
 							status: 'error',
@@ -370,7 +371,7 @@ export const PreviewIframe = forwardRef<HTMLIFrameElement, PreviewIframeProps>(
                             title={title}
                             aria-hidden="true"
                             onError={() => {
-                                console.error('Iframe failed to load');
+                                logger.error('Iframe failed to load');
                                 setLoadState(prev => ({
                                     ...prev,
                                     status: 'error',

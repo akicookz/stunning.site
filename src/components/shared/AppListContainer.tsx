@@ -1,6 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, RefreshCw, X, Code2 } from 'lucide-react';
+import { Loader2, RefreshCw, X, Code2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AppCard } from './AppCard';
 import type { AppListData } from '@/hooks/use-paginated-apps';
@@ -132,7 +133,8 @@ export const AppListContainer: React.FC<AppListContainerProps> = ({
 
   if (apps.length === 0) {
     const emptyStateContent = emptyState || defaultEmptyState;
-    
+    const showCreateCta = !emptyState && totalCount === 0;
+
     return (
       <div className="text-center py-20">
         <Code2 className="h-16 w-16 mx-auto mb-4 text-text-tertiary" />
@@ -143,6 +145,14 @@ export const AppListContainer: React.FC<AppListContainerProps> = ({
           {emptyStateContent.description}
         </p>
         {'action' in emptyStateContent && emptyStateContent.action}
+        {showCreateCta && (
+          <Button asChild className="gap-2">
+            <Link to="/">
+              <Sparkles className="h-4 w-4" />
+              Create your first app
+            </Link>
+          </Button>
+        )}
       </div>
     );
   }

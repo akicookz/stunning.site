@@ -5,11 +5,11 @@ import { ThemeToggle } from '../theme-toggle';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/auth-context';
 import { ChevronRight, AlertCircle } from 'lucide-react';
-import { CloudflareLogo } from '../icons/logos';
+import { Brand } from '../brand';
 import { usePlatformStatus } from '@/hooks/use-platform-status';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useLocation } from 'react-router';
+import { useLocation, Link } from 'react-router';
 import clsx from 'clsx';
 import { UsageLimitsBadge } from '../usage-limits-badge';
 
@@ -53,14 +53,9 @@ export function GlobalHeader() {
 								className='flex items-center'
 							>
 								<SidebarTrigger className="h-8 w-8 text-text-primary rounded-md hover:bg-orange-50/40 transition-colors duration-200" />
-								<CloudflareLogo
-									className="flex-shrink-0 mx-auto transition-all duration-300"
-									style={{
-										width: '28px',
-										height: '28px',
-										marginLeft: '8px',
-									}}
-								/>
+								<Link to="/" className="ml-2 flex items-center rounded-md hover:opacity-90 transition-opacity">
+									<Brand />
+								</Link>
 								{hasMaintenanceMessage && (
 									<button
 										type="button"
