@@ -22,9 +22,9 @@ import {
 	Bookmark,
 	Globe,
 	Trash2,
-	Github,
 	GitBranch,
 } from 'lucide-react';
+import { GithubIcon } from '@/components/icons/logos';
 import { MonacoEditor } from '@/components/monaco-editor/monaco-editor';
 import { getFileType } from '@/utils/string';
 import { Button } from '@/components/ui/button';
@@ -639,7 +639,7 @@ export default function AppView() {
 										className={cn('gap-2 text-text-primary')}
 										title={`View on GitHub (${app.githubRepositoryVisibility || 'public'})`}
 									>
-										<Github className="h-4 w-4" />
+										<GithubIcon className="h-4 w-4" />
 										View on GitHub
 										{app.githubRepositoryVisibility ===
 											'private' && (

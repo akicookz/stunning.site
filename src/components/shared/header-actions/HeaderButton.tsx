@@ -1,7 +1,7 @@
-import type { LucideIcon } from 'lucide-react';
+import type { ComponentType } from 'react';
 
 interface HeaderButtonProps {
-	icon: LucideIcon;
+	icon: ComponentType<{ className?: string }>;
 	label?: string;
 	onClick: () => void;
 	title?: string;

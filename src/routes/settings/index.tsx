@@ -461,7 +461,7 @@ export default function SettingsPage() {
 								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-3">
 										<div className="h-10 w-10 rounded-full bg-[#24292e] flex items-center justify-center">
-											<Github className="h-5 w-5 text-white" />
+											<GithubIcon className="h-5 w-5 text-white" />
 										</div>
 										<div>
 											<p className="font-medium">
@@ -497,7 +497,7 @@ export default function SettingsPage() {
 								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-3">
 										<div className="h-10 w-10 rounded-full bg-bg-2 border-bg-1 dark:border-bg-4 border flex items-center justify-center">
-											<Github className="h-5 w-5 text-text-tertiary" />
+											<GithubIcon className="h-5 w-5 text-text-tertiary" />
 										</div>
 										<div>
 											<p className="font-medium">
@@ -518,7 +518,7 @@ export default function SettingsPage() {
 										onClick={handleConnectGithub}
 										className="gap-2 bg-text-primary hover:bg-[#1a1e22] text-bg-1"
 									>
-										<Github className="h-4 w-4" />
+										<GithubIcon className="h-4 w-4" />
 										Install GitHub App
 									</Button>
 								</div>
