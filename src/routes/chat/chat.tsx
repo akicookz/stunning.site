@@ -16,7 +16,7 @@ import { PhaseTimeline } from './components/phase-timeline';
 import { type DebugMessage } from './components/debug-panel';
 import { DeploymentControls } from './components/deployment-controls';
 import { useChat } from './hooks/use-chat';
-import { type ModelConfigsInfo, type BlueprintType, type PhasicBlueprint, SUPPORTED_IMAGE_MIME_TYPES, type ProjectType, type FileType } from '@/api-types';
+import { type ModelConfigsInfo, type BlueprintType, type PhasicBlueprint, SUPPORTED_IMAGE_MIME_TYPES, type ProjectType, type FileType, type ChatMode } from '@/api-types';
 import { featureRegistry } from '@/features';
 import { useFileContentStream } from './hooks/use-file-content-stream';
 import { logger } from '@/utils/logger';
@@ -55,6 +55,10 @@ export default function Chat() {
 	// Captured once at mount so it survives the URL replace that happens after
 	// the chat session is created (which drops the ?plan= query param).
 	const [planMode] = useState(() => searchParams.get('plan') === '1');
+	// Conversation mode for follow-up messages (Agent / Plan / Ask).
+	const [chatMode, setChatMode] = useState<ChatMode>(() =>
+		searchParams.get('plan') === '1' ? 'plan' : 'agent',
+	);
 
 	// Extract images from URL params if present
 	const userImages = useMemo(() => {
@@ -642,6 +646,7 @@ export default function Chat() {
 			sendWebSocketMessage(websocket, 'user_suggestion', {
 				message: newMessage,
 				images: images.length > 0 ? images : undefined,
+				mode: chatMode,
 			});
 			sendUserMessage(newMessage);
 			setNewMessage('');
@@ -652,7 +657,7 @@ export default function Chat() {
 			// Ensure we scroll after sending our own message
 			requestAnimationFrame(() => scrollToBottom());
 		},
-		[newMessage, websocket, sendUserMessage, isChatDisabled, scrollToBottom, images, clearImages, limitsData, limitsLoading],
+		[newMessage, websocket, sendUserMessage, isChatDisabled, scrollToBottom, images, clearImages, limitsData, limitsLoading, chatMode],
 	);
 
 	const [progress, total] = useMemo((): [number, number] => {
@@ -931,6 +936,8 @@ export default function Chat() {
 					isProcessing={isProcessing}
 					isChatDragging={isChatDragging}
 					chatDragHandlers={chatDragHandlers}
+					mode={chatMode}
+					onModeChange={setChatMode}
 					isChatDisabled={isChatDisabled}
 					isRunning={isRunning}
 					isGenerating={isGenerating}

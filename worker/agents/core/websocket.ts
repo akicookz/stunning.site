@@ -6,6 +6,7 @@ import { MAX_IMAGES_PER_MESSAGE, MAX_IMAGE_SIZE_BYTES, type ImageAttachment } fr
 import { type CredentialsPayload } from '../inferutils/config.types';
 import { checkUsageAndBalance } from '../../services/rate-limit';
 import type { CodeGeneratorAgent } from './codingAgent';
+import type { ChatMode } from './types';
 
 // Type for incoming WebSocket messages
 interface IncomingWebSocketMessage {
@@ -14,6 +15,7 @@ interface IncomingWebSocketMessage {
     images?: ImageAttachment[];
     credentials?: CredentialsPayload;
     answers?: Record<string, string | string[]>;
+    mode?: string;
     data?: {
         url?: string;
         viewport?: unknown;
@@ -232,7 +234,7 @@ export async function handleWebSocketMessage(
                     return;
                 }
                 
-                agent.handleUserInput(parsedMessage.message, parsedMessage.images).catch((error: unknown) => {
+                agent.handleUserInput(parsedMessage.message, parsedMessage.images, parsedMessage.mode as ChatMode | undefined).catch((error: unknown) => {
                     logger.error('Error handling user suggestion:', error);
                     sendError(connection, `Error processing user suggestion: ${error instanceof Error ? error.message : String(error)}`);
                 });

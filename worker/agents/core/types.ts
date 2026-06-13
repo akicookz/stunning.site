@@ -13,6 +13,14 @@ export type BehaviorType = 'phasic' | 'agentic';
 export type ProjectType = 'app' | 'workflow' | 'presentation' | 'general';
 
 /**
+ * Conversation mode chosen by the user for a chat message.
+ * - agent: implement the requested changes (default)
+ * - ask: answer/discuss only, do not modify code
+ * - plan: propose a plan and ask clarifying questions before implementing
+ */
+export type ChatMode = 'agent' | 'ask' | 'plan';
+
+/**
  * Runtime type - WHERE it runs during dev
  * - sandbox: Cloudflare Containers (full apps with UI)
  * - worker: Dynamic Worker Loaders (backend only)  

@@ -1,5 +1,5 @@
 
-import { AgentInitArgs } from '../types';
+import { AgentInitArgs, ChatMode } from '../types';
 import { AgenticState } from '../state';
 import { WebSocketMessageResponses } from '../../constants';
 import { UserConversationProcessor } from '../../operations/UserConversationProcessor';
@@ -135,7 +135,7 @@ export class AgenticCodingBehavior extends BaseCodingBehavior<AgenticState> impl
      * Override handleUserInput to just queue messages without AI processing
      * Messages will be injected into conversation after tool call completions
      */
-    async handleUserInput(userMessage: string, images?: ImageAttachment[]): Promise<void> {
+    async handleUserInput(userMessage: string, images?: ImageAttachment[], _mode?: ChatMode): Promise<void> {
         let processedImages: ProcessedImageAttachment[] | undefined;
 
         if (images && images.length > 0) {

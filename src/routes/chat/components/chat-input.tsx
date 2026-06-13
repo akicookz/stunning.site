@@ -2,8 +2,9 @@ import { type FormEvent, type RefObject } from 'react';
 import { WebSocket } from 'partysocket';
 import { X } from 'lucide-react';
 import { PromptBox } from '@/components/prompt-box';
+import { ChatModeSelector } from './chat-mode-selector';
 import { sendWebSocketMessage } from '../utils/websocket-helpers';
-import type { ImageAttachment } from '@/api-types';
+import type { ImageAttachment, ChatMode } from '@/api-types';
 import { type UsageSummary } from '@/hooks/use-limits';
 
 interface ChatInputProps {
@@ -26,6 +27,10 @@ interface ChatInputProps {
 		onDragOver: (e: React.DragEvent) => void;
 		onDrop: (e: React.DragEvent) => void;
 	};
+
+	// Conversation mode
+	mode: ChatMode;
+	onModeChange: (mode: ChatMode) => void;
 
 	// Disabled states
 	isChatDisabled: boolean;
@@ -55,6 +60,8 @@ export function ChatInput({
 	isProcessing,
 	isChatDragging,
 	chatDragHandlers,
+	mode,
+	onModeChange,
 	isChatDisabled,
 	isRunning,
 	isGenerating,
@@ -111,6 +118,13 @@ export function ChatInput({
 			limitsData={limitsData}
 			onConnectCloudflare={onConnectCloudflare}
 			variant="compact"
+			leftActions={
+				<ChatModeSelector
+					value={mode}
+					onChange={onModeChange}
+					disabled={isDebugging}
+				/>
+			}
 			rightActions={stopButton}
 			maxWords={4000}
 			formRef={chatFormRef}

@@ -144,7 +144,7 @@ export function PromptBox({
 				<CreditsBanner limitsData={limitsData} onConnectCloudflare={onConnectCloudflare}>
 					<div className="rounded-xl bg-bg-2 border border-[#f48120]/30 focus-within:border-[#f48120]/70 transition-all duration-200">
 						<form ref={formRef} onSubmit={handleSubmit}>
-							<div className="relative">
+							<div className="relative px-3 pt-2.5">
 								{dragOverlay}
 								{images.length > 0 && (
 									<div className="mb-2">
@@ -165,14 +165,19 @@ export function PromptBox({
 									disabled={disabled}
 									placeholder={resolvedPlaceholder}
 									rows={1}
-									className="w-full bg-transparent rounded-xl px-3 pr-20 py-2 text-sm ring-0 outline-none text-text-primary placeholder:text-text-primary/50! disabled:opacity-50 disabled:cursor-not-allowed resize-none overflow-y-auto no-scrollbar min-h-[36px] max-h-[120px] group"
+									className="w-full bg-transparent text-sm ring-0 outline-none text-text-primary placeholder:text-text-primary/50! disabled:opacity-50 disabled:cursor-not-allowed resize-none overflow-y-auto no-scrollbar min-h-[36px] max-h-[120px] group"
 									style={{ height: 'auto', minHeight: '36px' }}
 									ref={(textarea) => {
 										(internalTextareaRef as React.MutableRefObject<HTMLTextAreaElement | null>).current = textarea;
 										if (textarea) autoResize(textarea);
 									}}
 								/>
-								<div className="absolute right-1.5 bottom-2.5 flex items-center gap-1">
+							</div>
+							<div className="flex items-center justify-between gap-2 px-2 pb-2 pt-1">
+								<div className="flex items-center gap-1 min-w-0">
+									{leftActions}
+								</div>
+								<div className="flex items-center gap-1 shrink-0">
 									{rightActions}
 									<ImageUploadButton
 										onFilesSelected={onAddImages}

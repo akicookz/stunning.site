@@ -6,7 +6,7 @@ import {
 } from '../../schemas';
 import { StaticAnalysisResponse } from '../../../services/sandbox/sandboxTypes';
 import { CurrentDevState, MAX_PHASES, PhasicState } from '../state';
-import { AllIssues, AgentInitArgs, PhaseExecutionResult, UserContext } from '../types';
+import { AllIssues, AgentInitArgs, PhaseExecutionResult, UserContext, ChatMode } from '../types';
 import { WebSocketMessageResponses } from '../../constants';
 import { UserConversationProcessor } from '../../operations/UserConversationProcessor';
 import { GenerationContext, PhasicGenerationContext } from '../../domain/values/GenerationContext';
@@ -721,8 +721,8 @@ export class PhasicCodingBehavior extends BaseCodingBehavior<PhasicState> implem
         }
     }
 
-    async handleUserInput(userMessage: string, images?: ImageAttachment[]): Promise<void> {
-        const result = await super.handleUserInput(userMessage, images);
+    async handleUserInput(userMessage: string, images?: ImageAttachment[], mode?: ChatMode): Promise<void> {
+        const result = await super.handleUserInput(userMessage, images, mode);
         return result;
     }
 }

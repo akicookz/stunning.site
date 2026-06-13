@@ -18,6 +18,7 @@ import { imagesToBase64 } from "worker/utils/images";
 import { ProcessedImageAttachment } from "worker/types/image-attachment";
 import { AbortError, InferResponseString } from "../inferutils/core";
 import { GenerationContext } from "../domain/values/GenerationContext";
+import { ChatMode } from "../core/types";
 import { compactifyContext } from "../utils/conversationCompactifier";
 import { ChatCompletionMessageFunctionToolCall } from "openai/resources";
 import { prepareMessagesForInference } from "../utils/common";
@@ -53,6 +54,7 @@ export interface UserConversationInputs {
     errors: RuntimeError[];
     projectUpdates: string[];
     images?: ProcessedImageAttachment[];
+    mode?: ChatMode;
 }
 
 export interface UserConversationOutputs {
@@ -301,9 +303,28 @@ const USER_PROMPT = `
 `;
 
 
-function buildUserMessageWithContext(userMessage: string, errors: RuntimeError[], projectUpdates: string[], forInference: boolean): string {
+// Per-mode directives injected only into the inference prompt (never stored in
+// history), steering Orange's behavior for Ask / Plan vs the default Agent mode.
+const MODE_DIRECTIVES: Record<ChatMode, string> = {
+    agent: '',
+    ask: `<mode_directive>
+The user is in ASK mode. Answer their question and discuss only.
+DO NOT call queue_request or deep_debug, and do NOT make, queue, or promise any code changes.
+If they want something implemented, tell them to switch to Agent mode.
+</mode_directive>`,
+    plan: `<mode_directive>
+The user is in PLAN mode. Think through the request and lay out a concise, concrete, step-by-step plan, asking any clarifying questions you need.
+DO NOT call queue_request yet — do not implement anything. Wait until the user reviews the plan and switches to Agent mode (or explicitly tells you to proceed).
+</mode_directive>`,
+};
+
+function buildUserMessageWithContext(userMessage: string, errors: RuntimeError[], projectUpdates: string[], forInference: boolean, mode?: ChatMode): string {
     let userPrompt = USER_PROMPT.replace("{{timestamp}}", new Date().toISOString()).replace("{{userMessage}}", userMessage)
     if (forInference) {
+        const directive = mode ? MODE_DIRECTIVES[mode] : '';
+        if (directive) {
+            userPrompt = `${directive}\n${userPrompt}`;
+        }
         if (projectUpdates && projectUpdates.length > 0) {
             userPrompt = userPrompt.replace("{{projectUpdates}}", projectUpdates.join("\n\n"));
         }
@@ -318,7 +339,7 @@ export class UserConversationProcessor extends AgentOperation<GenerationContext,
 
     async execute(inputs: UserConversationInputs, options: OperationOptions<GenerationContext>): Promise<UserConversationOutputs> {
         const { env, logger, context, agent } = options;
-        const { userMessage, conversationState, errors, images, projectUpdates } = inputs;
+        const { userMessage, conversationState, errors, images, projectUpdates, mode } = inputs;
         logger.info("Processing user message", { 
             messageLength: inputs.userMessage.length,
             hasImages: !!images && images.length > 0,
@@ -329,7 +350,7 @@ export class UserConversationProcessor extends AgentOperation<GenerationContext,
             const systemPromptMessages = getSystemPromptWithProjectContext(SYSTEM_PROMPT, context, CodeSerializerType.SIMPLE);
             
             // Create user message with optional images for inference
-            const userPromptForInference = buildUserMessageWithContext(userMessage, errors, projectUpdates, true);
+            const userPromptForInference = buildUserMessageWithContext(userMessage, errors, projectUpdates, true, mode);
             const userMessageForInference = images && images.length > 0
                 ? createMultiModalUserMessage(
                     userPromptForInference,

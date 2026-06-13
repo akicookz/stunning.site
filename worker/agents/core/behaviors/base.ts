@@ -8,7 +8,7 @@ import {
 } from '../../schemas';
 import { ExecuteCommandsResponse, PreviewType, RuntimeError, StaticAnalysisResponse, TemplateDetails, TemplateFile } from '../../../services/sandbox/sandboxTypes';
 import { BaseProjectState, AgenticState, FileState } from '../state';
-import { AllIssues, AgentSummary, AgentInitArgs, BehaviorType, DeploymentTarget, ProjectType } from '../types';
+import { AllIssues, AgentSummary, AgentInitArgs, BehaviorType, DeploymentTarget, ProjectType, ChatMode } from '../types';
 import { WebSocketMessageResponses } from '../../constants';
 import { ProjectSetupAssistant } from '../../assistants/projectsetup';
 import { UserConversationProcessor, RenderToolCall } from '../../operations/UserConversationProcessor';
@@ -1653,7 +1653,7 @@ export abstract class BaseCodingBehavior<TState extends BaseProjectState>
      * Handle user input during conversational code generation
      * Processes user messages and updates pendingUserInputs state
      */
-    async handleUserInput(userMessage: string, images?: ImageAttachment[]): Promise<void> {
+    async handleUserInput(userMessage: string, images?: ImageAttachment[], mode?: ChatMode): Promise<void> {
         try {
             this.logger.info('Processing user input message', { 
                 messageLength: userMessage.length,
@@ -1684,8 +1684,9 @@ export abstract class BaseCodingBehavior<TState extends BaseProjectState>
 
             // Process the user message using conversational assistant
             const conversationalResponse = await this.operations.processUserMessage.execute(
-                { 
-                    userMessage, 
+                {
+                    userMessage,
+                    mode,
                     conversationState,
                     conversationResponseCallback: (
                         message: string,

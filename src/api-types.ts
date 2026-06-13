@@ -181,7 +181,8 @@ export type {
 
 export type {
   BehaviorType,
-  ProjectType
+  ProjectType,
+  ChatMode
 } from 'worker/agents/core/types';
 
 export type {
